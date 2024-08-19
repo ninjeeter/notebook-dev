@@ -1,8 +1,8 @@
 {
-  "name": "starterkit-plugin-frontend",
-  "version": "0.1.0",
-  "description": "StarterKit plugin for Caido",
-  "author": "Caido Labs Inc. <dev@caido.io>",
+  "name": "notebook-plugin-frontend",
+  "version": "1.2.0",
+  "description": "Note taking plugin for Caido.",
+  "author": "Ninjeeter",
   "license": "CC0-1.0",
   "type": "module",
   "scripts": {
