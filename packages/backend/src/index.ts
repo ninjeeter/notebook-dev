@@ -14,10 +14,25 @@ async function writeNotesToFile(sdk: SDK, notes: PluginStorage["notes"]): Promis
   await FILE_MUTEX.runExclusive(async () => {
     // Ensure FILE is opened.
     if (FILE) {
+      await FILE.truncate(0);
+
       for (const note of notes) {
-        await FILE.write(
-          `TEST ${note.datetime} - ${note.note} ${note.projectName ? `(Project: ${note.projectName})` : ''} ${note.comment ? `(Comment: ${note.comment})` : ''}\n`
-        );
+        // Start with the datetime and newline
+        let noteContent = `\r${note.datetime}\n`;
+
+        // Add note content with indentation
+        noteContent += `${note.note.split('\n').map(line => `\t${line}`).join('\n')}\n`;
+
+        // Optionally add project name and comment
+        if (note.projectName) {
+          noteContent += `\t(Project: ${note.projectName})\n`;
+        }
+        if (note.comment) {
+          noteContent += `\t(Comment: ${note.comment})\n`;
+        }
+
+        // Write the formatted note content to the file
+        await FILE.write(noteContent);
       }
     }
   });
@@ -29,7 +44,7 @@ export type API = DefineAPI<{
 
 export async function init(sdk: SDK) {
   // Open file for appending.
-  FILE = await open("C:\\Users\\ahnde\\Downloads\\output.txt", "a");
+  FILE = await open("C:\\Users\\ahnde\\Downloads\\output.txt", "w");
 
   // Register the writeNotes function as an API endpoint
   sdk.api.register("writeNotes", writeNotesToFile);

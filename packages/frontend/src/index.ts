@@ -25,20 +25,10 @@ export const getNotes = (sdk: CaidoSDK) => {
 };
 
 // Function to call backend API to write notes to file.
-const outputNotes = async (
-    sdk: CaidoSDK,
-    datetime: string,
-    note: string,
-    projectName?: string,
-    comment?: string,
-  ) => {
+const outputNotes = async (sdk: CaidoSDK) => {
     const existingNotes = getNotes(sdk);
-    // Create a new note object according to PluginStorage type.
-    const newNote = { datetime, note, projectName, comment: comment || "" };
-    // Combine the existing notes with the new note.
-    const allNotes = [...existingNotes, newNote];
-    if (allNotes.length > 0) {
-      await sdk.backend.writeNotes(allNotes);
+    if (existingNotes.length > 0) {
+      await sdk.backend.writeNotes(existingNotes);
       sdk.window.showToast('Notes have been outputted to file.', { variant: 'info', duration: 5000 });
     } else {
       sdk.window.showToast('No notes available to output.', { variant: 'info', duration: 5000 });
@@ -90,6 +80,8 @@ const addNoteMenu = async (sdk: CaidoSDK) => {
       await addNoteStorage(sdk, datetime, currentSelect, projectName);
       // Popup message of successful addition to note array.
       sdk.window.showToast(`${currentSelect} added to Notebook.`, {variant: "info", duration: 5000});
+
+      await outputNotes(sdk);
     }
   }
 };
@@ -135,28 +127,6 @@ const addPage = (sdk: CaidoSDK) => {
   textarea.placeholder = "Enter note here...";
   textarea.classList.add("text-area");
 
-  // Usage example: Button to trigger notes output
-  const outputNotesButton = sdk.ui.button({
-    variant: "primary",
-    label: "Output Notes to File",
-  });
-
-  outputNotesButton.addEventListener("click", async () => {
-    const textareaValue = textarea.value.trim();
-    const datetime = new Date().toLocaleString();
-    const project = await sdk.graphql.currentProject();
-    const projectName = project?.currentProject?.name || "No Project Selected";
-    const comment = "";
-    if (textareaValue.length > 0) {
-      await outputNotes(sdk, datetime, textareaValue, projectName, comment);
-    } else {
-      sdk.window.showToast("No new notes available to output.", {
-        variant: "info",
-        duration: 5000,
-      });
-    }
-  });
-
   // `Add note.` button.
   const addNoteButton = sdk.ui.button({
     variant: "primary",
@@ -179,6 +149,10 @@ const addPage = (sdk: CaidoSDK) => {
       // Clear textarea and reset value.
       inputValue = "";
       textarea.value = "";
+
+      await outputNotes(sdk);
+    } else {
+      sdk.window.showToast("Please enter a note before adding.", { variant: "warning", duration: 3000 });
     }
   });
 
@@ -194,7 +168,6 @@ const addPage = (sdk: CaidoSDK) => {
 
   const buttonContainer = document.createElement("div");
   buttonContainer.appendChild(addNoteButton);
-  buttonContainer.appendChild(outputNotesButton)
   buttonContainer.classList.add("button-container");
 
   const footerContainer = document.createElement("div");
